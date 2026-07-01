@@ -134,21 +134,22 @@ jobs:
         env:
           VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.job.vcpkg-triplet }}
         run: |
-          if ! $VCPKG_ROOT/vcpkg `
-            install `
-            --triplet ${{ matrix.job.vcpkg-triplet }} `
+          if ! $VCPKG_ROOT/vcpkg \
+            install \
+            --triplet ${{ matrix.job.vcpkg-triplet }} \
             --x-install-root="$VCPKG_ROOT/installed"; then
-            Get-ChildItem "${VCPKG_ROOT}" -Recurse -Filter *.log | ForEach-Object {
-              Write-Output "$($_.FullName):"
-              Write-Output "======"
-              Get-Content $_.FullName
-              Write-Output "======"
-              Write-Output ""
-            }
+            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
+              echo "$_1:"
+              echo "======"
+              cat "$_1"
+              echo "======"
+              echo ""
+            done
             exit 1
           fi
-          Get-Content "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" -TotalCount 100 -ErrorAction SilentlyContinue
-        shell: pwsh
+          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
+        shell: bash
+
 
       - name: Build rustdesk
         run: |
